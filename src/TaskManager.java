@@ -19,6 +19,14 @@ public class TaskManager {
         return allTask.get(id);
     }
 
+    public void taskInProgress(Task task) {
+        task.setStatus(Status.IN_PROGRESS);
+    }
+
+    public void taskDone(Task task) {
+        task.setStatus(Status.DONE);
+    }
+
     public void addTask(Task task) {
         int id = taskCounts;
         task.setId(id);
