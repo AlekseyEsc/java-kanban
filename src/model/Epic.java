@@ -1,7 +1,11 @@
+package model;
+
+import model.Subtask;
+
 import java.util.ArrayList;
 
-public class Epic extends Task{
-    private ArrayList<Subtask> subtasks;
+public class Epic extends Task {
+    private final ArrayList<Subtask> subtasks;
     public Epic(String name, String description) {
         super(name, description);
         subtasks = new ArrayList<>();

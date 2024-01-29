@@ -1,3 +1,6 @@
+package service;
+
+import model.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
