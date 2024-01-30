@@ -2,20 +2,37 @@ package service;
 
 import model.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 
 public class TaskManager {
     private static int taskCounts = 1;
     HashMap<Integer, Task> allTask = new HashMap<>();
+    HashMap<Integer, Subtask> allSubtask = new HashMap<>();
+    HashMap<Integer, Epic> allEpics = new HashMap<>();
 
 
-    public Collection<Task> getAllTasks() {
-        return allTask.values();
+    public ArrayList<Task> getAllTasks() {
+        return new ArrayList<>(allTask.values());
+    }
+
+    public ArrayList<Subtask> getAllSubtasks() {
+        return new ArrayList<>(allSubtask.values());
+    }
+
+    public ArrayList<Epic> getAllEpics() {
+        return new ArrayList<>(allEpics.values());
     }
 
     public void removeAllTasks() {
         allTask.clear();
+    }
+
+    public void removeAllSubtask() {
+        allSubtask.clear();
+    }
+
+    public void removeAllEpics() {
+        allEpics.clear();
     }
 
     public Task getTask(int id) {
