@@ -18,8 +18,8 @@ public class Epic extends Task {
         super(name, description);
     }
 
-    public void addSubtaskId(Subtask subtask) {
-        subtaskIds.add(subtask.getId());
+    public void addSubtaskId(Integer id) {
+        subtaskIds.add(id);
     }
 
     public void removeSubtaskId(Subtask subtask) {
@@ -36,6 +36,7 @@ public class Epic extends Task {
                 "name='" + this.getName() + "\'" +
                 ", description='" + this.getDescription() + "\'" +
                 ", id='" + this.getId() + "\'" +
+                ", status='" + this.getStatus() + "\'" +
                 ", subtaskIds=" + subtaskIds +
                 '}';
     }

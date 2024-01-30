@@ -32,8 +32,8 @@ public class Task {
         return "Task{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", id=" + id +
-                ", status=" + status +
+                ", id='" + id + "\'" +
+                ", status='" + status + "\'" +
                 '}';
     }
 
