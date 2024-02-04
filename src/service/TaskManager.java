@@ -36,15 +36,27 @@ public class TaskManager {
     }
 
     public Task getTask(int id) {
-        return allTask.get(id);
+        Task selectTask = allTask.get(id);
+        Task returnTask = new Task(selectTask.getName(), selectTask.getDescription());
+        returnTask.setId(selectTask.getId());
+        return returnTask;
     }
 
     public Subtask getSubtask(int id) {
-        return allSubtask.get(id);
+        Subtask selectSubtask = allSubtask.get(id);
+        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), getEpic(selectSubtask.getEPIC_ID()));
+        returnSubtask.setId(selectSubtask.getId());
+        return returnSubtask;
     }
 
     public Epic getEpic(int id) {
-        return allEpics.get(id);
+        Epic selectEpic = allEpics.get(id);
+        Epic returnEpic = new Epic(selectEpic.getName(), selectEpic.getDescription());
+        returnEpic.setId(selectEpic.getId());
+        for (Integer subtaskId : selectEpic.getSubtaskIds()) {
+            returnEpic.addSubtaskId(subtaskId);
+        }
+        return returnEpic;
     }
     public Integer generateId() {
         return taskCounts++;
