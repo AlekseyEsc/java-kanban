@@ -52,4 +52,8 @@ public interface TaskManager {
     void inProgress(Task task);
 
     void inDone(Task task);
+
+    ArrayList<Task> getHistoryTasks();
+
+    void addInHistory(Task task);
 }
