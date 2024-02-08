@@ -1,53 +1,55 @@
 import model.*;
 import service.InMemoryTaskManager;
+import service.Managers;
 
 public class Main {
+    private static InMemoryTaskManager manager;
 
     public static void main(String[] args) {
         System.out.println("Поехали!");
 
-        InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
+        manager = Managers.getDefault();
+        addAllTask();
+        printAllTasks();
+    }
 
+    private static void addAllTask() {
         Task buySock = new Task("Купить носки", "Закончились носки");
-        inMemoryTaskManager.createTask(buySock);
+        manager.createTask(buySock);
 
         Task makeDinner = new Task("Сделать ужин", "Хочется кушать");
-        inMemoryTaskManager.createTask(makeDinner);
+        manager.createTask(makeDinner);
 
         Epic goToShop = new Epic("Сходить в магазин", "Купить продукты");
-        inMemoryTaskManager.createEpic(goToShop);
+        manager.createEpic(goToShop);
 
         Subtask buyMilk = new Subtask("Купить молоко", "Молоко кончается", goToShop);
         Subtask buyMeat = new Subtask("Купить мясо", "Кончается мясо", goToShop);
-        inMemoryTaskManager.createSubtask(buyMilk);
-        inMemoryTaskManager.createSubtask(buyMeat);
+        manager.createSubtask(buyMilk);
+        manager.createSubtask(buyMeat);
+    }
 
-        inMemoryTaskManager.updateEpic(goToShop);
+    private static void printAllTasks() {
+        System.out.println("Задачи:");
+        for (Task task : manager.getAllTasks()) {
+            System.out.println(task);
+        }
+        System.out.println("Эпики:");
+        for (Epic epic : manager.getAllEpics()) {
+            System.out.println(epic);
 
-        System.out.println("------------");
-        System.out.println(inMemoryTaskManager.getAllTasks());
-        System.out.println(inMemoryTaskManager.getTask(1));
-        System.out.println(inMemoryTaskManager.getTask(2));
-        System.out.println("------------");
-        System.out.println("CHANGE STATUS");
-        System.out.println("------------");
+            for (Task task : manager.getSubtasksByEpic(epic)) {
+                System.out.println("--> " + task);
+            }
+        }
+        System.out.println("Подзадачи:");
+        for (Task subtask : manager.getAllSubtasks()) {
+            System.out.println(subtask);
+        }
 
-        inMemoryTaskManager.inProgress(makeDinner);
-        inMemoryTaskManager.inProgress(buySock);
-        inMemoryTaskManager.inDone(buyMilk);
-        inMemoryTaskManager.inDone(buyMeat);
-
-        inMemoryTaskManager.updateSubtask(buyMeat);
-        inMemoryTaskManager.updateSubtask(buyMilk);
-        inMemoryTaskManager.updateTask(buySock);
-        inMemoryTaskManager.updateEpic(goToShop);
-
-        System.out.println(inMemoryTaskManager.getAllTasks());
-        System.out.println(inMemoryTaskManager.getEpic(3));
-        System.out.println(inMemoryTaskManager.getTask(2));
-        System.out.println("------------");
-        System.out.println(inMemoryTaskManager.getTask(1));
-        inMemoryTaskManager.removeAllTasks();
-        System.out.println(inMemoryTaskManager.getAllTasks());
+        System.out.println("История:");
+        for (Task task : manager.getHistory()) {
+            System.out.println(task);
+        }
     }
 }
