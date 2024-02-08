@@ -53,7 +53,4 @@ public interface TaskManager {
 
     void inDone(Task task);
 
-    ArrayList<Task> getHistory();
-
-    void addInHistory(Task task);
 }
