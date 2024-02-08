@@ -1,4 +1,5 @@
 import model.*;
+import service.InMemoryHistoryManager;
 import service.InMemoryTaskManager;
 import service.Managers;
 
@@ -48,7 +49,7 @@ public class Main {
         }
 
         System.out.println("История:");
-        for (Task task : manager.getHistory()) {
+        for (Task task : manager.historyManager.getHistory()) {
             System.out.println(task);
         }
     }
