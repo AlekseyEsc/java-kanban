@@ -8,7 +8,7 @@ public class Subtask extends Task {
         this.EPIC_ID = epic.getId();
     }
 
-    public int getEPIC_ID() {
+    public int getEpicId() {
         return EPIC_ID;
     }
 }

@@ -55,7 +55,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask getSubtask(int id) {
         Subtask selectSubtask = allSubtask.get(id);
-        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), getEpic(selectSubtask.getEPIC_ID()));
+        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), getEpic(selectSubtask.getEpicId()));
         returnSubtask.setId(selectSubtask.getId());
         addInHistory(returnSubtask);
         return returnSubtask;
@@ -86,7 +86,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createSubtask(Subtask subtask) {
-        Epic tempEpic = getEpic(subtask.getEPIC_ID());
+        Epic tempEpic = getEpic(subtask.getEpicId());
+        historyTasks.remove((historyTasks.size()-1));
         if (tempEpic == null) return;
 
         int id = generateId();
@@ -189,7 +190,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getHistoryTasks() {
+    public ArrayList<Task> getHistory() {
         return new ArrayList<Task>(historyTasks) ;
     }
 
