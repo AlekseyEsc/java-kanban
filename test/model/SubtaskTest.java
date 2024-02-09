@@ -5,15 +5,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class SubtaskTest {
     private static Subtask subtask;
-    private static Epic epic;
 
     @BeforeAll
     static void beforeAll() {
-        epic = new Epic("a", "b");
+        Epic epic = new Epic("a", "b");
         epic.setId(1);
         subtask = new Subtask("a", "b", epic);
         subtask.setId(2);

@@ -2,13 +2,11 @@ package service;
 
 import model.*;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 class ManagersTest {
     @DisplayName("Return init and working InMemoryHistoryManager")
