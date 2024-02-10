@@ -18,7 +18,10 @@ public class InMemoryHistoryManager implements HistoryManager{
         if (historyTask.size() >= maxSizeHistory) {
             historyTask.remove(0);
         }
+
         if (historyTask.contains(task)) {
+            historyTask.remove(task);
+            historyTask.add(task);
             return;
         }
         historyTask.add(task);
