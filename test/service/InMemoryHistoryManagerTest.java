@@ -4,7 +4,7 @@ import model.Task;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +16,7 @@ class InMemoryHistoryManagerTest {
         InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
         Task task = new Task("a", "b");
         historyManager.add(task);
-        ArrayList<Task> history = historyManager.getHistory();
+        List<Task> history = historyManager.getHistory();
         assertEquals(task, history.get(0), "HistoryManager is not allowed to modify the task");
     }
 

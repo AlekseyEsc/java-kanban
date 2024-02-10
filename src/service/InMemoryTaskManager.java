@@ -3,6 +3,7 @@ package service;
 import model.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
     private int taskCounts = 1;
@@ -17,17 +18,17 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     @Override
-    public ArrayList<Task> getAllTasks() {
+    public List<Task> getAllTasks() {
         return new ArrayList<>(allTask.values());
     }
 
     @Override
-    public ArrayList<Subtask> getAllSubtasks() {
+    public List<Subtask> getAllSubtasks() {
         return new ArrayList<>(allSubtask.values());
     }
 
     @Override
-    public ArrayList<Epic> getAllEpics() {
+    public List<Epic> getAllEpics() {
         return new ArrayList<>(allEpics.values());
     }
 
@@ -168,7 +169,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Subtask> getSubtasksByEpic(Epic epic) {
+    public List<Subtask> getSubtasksByEpic(Epic epic) {
         ArrayList<Subtask> subtasksByEpic = new ArrayList<>();
         Epic selectedEpic = allEpics.get(epic.getId());
         ArrayList<Integer> subtaskIds = selectedEpic.getSubtaskIds();

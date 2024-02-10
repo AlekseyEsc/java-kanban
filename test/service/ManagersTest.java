@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.List;
 
 
 class ManagersTest {
@@ -14,7 +14,7 @@ class ManagersTest {
     void shouldBeReturnInitAndWorkInMemoryHistoryManager() {
         InMemoryHistoryManager historyManager = Managers.getHistoryManager();
         historyManager.add(new Task("A", "b"));
-        ArrayList<Task> history = historyManager.getHistory();
+        List<Task> history = historyManager.getHistory();
         Assertions.assertEquals(1, history.size(),
                 "Manager return not working InMemoryHistoryManager");
     }

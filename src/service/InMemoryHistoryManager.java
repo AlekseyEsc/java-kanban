@@ -2,13 +2,14 @@ package service;
 
 import model.Task;
 import java.util.ArrayList;
+import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager{
-    private final ArrayList<Task> historyTask = new ArrayList<>();
+    private final List<Task> historyTask = new ArrayList<>();
     private final int maxSizeHistory = 10;
 
     @Override
-    public ArrayList<Task> getHistory() {
+    public List<Task> getHistory() {
         return new ArrayList<>(historyTask);
     }
 
