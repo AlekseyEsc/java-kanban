@@ -44,6 +44,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllEpics() {
         allEpics.clear();
+        removeAllSubtask();
     }
 
     @Override
