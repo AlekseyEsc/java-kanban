@@ -22,7 +22,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager fileBackedTaskManager = Managers.getFileBackedTaskManager(file);
         int maxCount = 0;
         try (
-                BufferedReader readerTask = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8));
+                BufferedReader readerTask = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))
 
         ) {
             while (readerTask.ready()) {
