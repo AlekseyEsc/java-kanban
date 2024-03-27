@@ -8,17 +8,15 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+
 
 
 class FileBackedTaskManagerTest {
 
 
-
-    @DisplayName("Load")
+    @DisplayName("Save and load in file")
     @Test
     void loadFromFile() {
-
         try {
             File fileTest = File.createTempFile("backup", "csv");
             FileBackedTaskManager manager = Managers.getFileBackedTaskManager(fileTest);
@@ -40,7 +38,6 @@ class FileBackedTaskManagerTest {
         } catch (IOException e) {
             throw new ManagerSaveException("Error IO");
         }
-
         System.out.println("END");
     }
 
