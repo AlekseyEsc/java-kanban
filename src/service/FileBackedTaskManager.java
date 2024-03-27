@@ -20,6 +20,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager fileBackedTaskManager = Managers.getFileBackedTaskManager(file);
+        int maxCount = 0;
         try (
                 BufferedReader readerTask = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8));
 
@@ -34,7 +35,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
                 Task tempTaskFromFile = fromString(line);
 
-                int maxCount = 0;
+
                 switch (tempTaskFromFile.getType()) {
                     case TaskType.TASK:
                         fileBackedTaskManager.allTask.put(tempTaskFromFile.getId(), tempTaskFromFile);
@@ -48,8 +49,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         fileBackedTaskManager.allEpics.put(tempTaskFromFile.getId(), (Epic) tempTaskFromFile);
                         if (maxCount <= tempTaskFromFile.getId()) maxCount = tempTaskFromFile.getId();
                 }
-                fileBackedTaskManager.taskCounts = maxCount;
             }
+            fileBackedTaskManager.taskCounts = ++maxCount;
             //history
             while (readerTask.ready()) {
                 Task tempTaskFromFile = fromString(readerTask.readLine());
