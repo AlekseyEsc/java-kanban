@@ -51,12 +51,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
             fileBackedTaskManager.taskCounts = ++maxCount;
+
+            StringBuilder historyString = new StringBuilder();
             //history
             while (readerTask.ready()) {
-                Task tempTaskFromFile = fromString(readerTask.readLine());
-                fileBackedTaskManager.historyManager.add(tempTaskFromFile);
-
+                historyString.append(readerTask.readLine());
             }
+            List<Task> historyTasks = historyFromString(historyString.toString());
+            for (Task historyTask : historyTasks) {
+                fileBackedTaskManager.historyManager.add(historyTask);
+            }
+
+
         } catch (FileNotFoundException e) {
             throw new ManagerNotFileFound("File not found in FileBackedTaskManager");
         } catch (IOException e) {
