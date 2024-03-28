@@ -16,7 +16,7 @@ class EpicTest {
     static void beforeAll() {
         epic = new Epic("a", "b");
         epic.setId(1);
-        subtask = new Subtask("z", "x", epic);
+        subtask = new Subtask("z", "x", 1);
         subtask.setId(2);
     }
 
