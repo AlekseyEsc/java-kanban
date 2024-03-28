@@ -7,6 +7,8 @@ import model.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,7 +24,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager fileBackedTaskManager = Managers.getFileBackedTaskManager(file);
         int maxCount = 0;
         try (
-                BufferedReader readerTask = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))
+                BufferedReader readerTask = Files.newBufferedReader(Paths.get(file.toURI()), StandardCharsets.UTF_8)
 
         ) {
             while (readerTask.ready()) {
@@ -82,7 +84,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (
-                FileWriter writer = new FileWriter(fileInfoInManager, StandardCharsets.UTF_8)
+                BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileInfoInManager.toURI()), StandardCharsets.UTF_8)
         ) {
             writer.write("id,type,name,status,description,epic\n");
             for (Epic epicToSave : allEpics.values()) {
@@ -126,7 +128,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         throw new ManagerTypeTaskException("Error type task");
     }
 
-    static String historyToString(HistoryManager manager) {
+    private static String historyToString(HistoryManager manager) {
         StringBuilder stringHistoryBuilder = new StringBuilder();
         for (Task taskToString : manager.getHistory()) {
             stringHistoryBuilder.append(taskToString.toString()).append("\n");
@@ -134,7 +136,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return stringHistoryBuilder.toString();
     }
 
-    static List<Task> historyFromString(String value) {
+    private static List<Task> historyFromString(String value) {
         String[] lines = value.split("\n");
         List<Task> taskFromString = new LinkedList<>();
         for (String line : lines) {
