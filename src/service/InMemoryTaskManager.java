@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
-    private int taskCounts = 1;
+    protected int taskCounts = 1;
     Map<Integer, Task> allTask = new HashMap<>();
     Map<Integer, Subtask> allSubtask = new HashMap<>();
     Map<Integer, Epic> allEpics = new HashMap<>();
@@ -17,7 +17,6 @@ public class InMemoryTaskManager implements TaskManager {
     public InMemoryTaskManager(HistoryManager historyManager) {
         this.historyManager = historyManager;
     }
-
 
     @Override
     public List<Task> getAllTasks() {
@@ -89,7 +88,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (allSubtask.get(id) == null) return null;
 
         Subtask selectSubtask = allSubtask.get(id);
-        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), allEpics.get(selectSubtask.getEpicId()));
+        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), selectSubtask.getEpicId());
         returnSubtask.setId(selectSubtask.getId());
         returnSubtask.setStatus(selectSubtask.getStatus());
         historyManager.add(returnSubtask);
