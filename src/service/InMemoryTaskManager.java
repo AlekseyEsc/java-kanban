@@ -1,11 +1,12 @@
 package service;
 
+import exceptions.NotFoundException;
 import model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     protected int taskCounts = 1;
@@ -76,7 +77,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (allTask.get(id) == null) return null;
 
         Task selectTask = allTask.get(id);
-        Task returnTask = new Task(selectTask.getName(), selectTask.getDescription());
+        Task returnTask = new Task(selectTask.getName(), selectTask.getDescription(),
+                selectTask.getStartTime(), selectTask.getDuration());
         returnTask.setId(selectTask.getId());
         returnTask.setStatus(selectTask.getStatus());
         historyManager.add(returnTask);
@@ -88,7 +90,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (allSubtask.get(id) == null) return null;
 
         Subtask selectSubtask = allSubtask.get(id);
-        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), selectSubtask.getEpicId());
+        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(),
+                selectSubtask.getEpicId(), selectSubtask.getStartTime(), selectSubtask.getDuration());
         returnSubtask.setId(selectSubtask.getId());
         returnSubtask.setStatus(selectSubtask.getStatus());
         historyManager.add(returnSubtask);
@@ -100,7 +103,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (allEpics.get(id) == null) return null;
 
         Epic selectEpic = allEpics.get(id);
-        Epic returnEpic = new Epic(selectEpic.getName(), selectEpic.getDescription());
+        Epic returnEpic = new Epic(selectEpic.getName(), selectEpic.getDescription(),
+                selectEpic.getStartTime(), selectEpic.getDuration());
         returnEpic.setId(selectEpic.getId());
         returnEpic.setStatus(selectEpic.getStatus());
         if (selectEpic.getSubtaskIds().isEmpty()) {
@@ -134,9 +138,11 @@ public class InMemoryTaskManager implements TaskManager {
 
         int id = generateId();
         subtask.setId(id);
-        tempEpic.addSubtaskId(id);
         allSubtask.put(id, subtask);
+
+        tempEpic.addSubtaskId(id);
         updateEpicStatus(tempEpic);
+        updateTimeAndDurationEpic(tempEpic);
     }
 
     @Override
@@ -144,6 +150,7 @@ public class InMemoryTaskManager implements TaskManager {
         int id = generateId();
         epic.setId(id);
         allEpics.put(id, epic);
+
     }
 
     @Override
@@ -199,13 +206,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getSubtasksByEpic(Epic epic) {
-        ArrayList<Subtask> subtasksByEpic = new ArrayList<>();
-        Epic selectedEpic = allEpics.get(epic.getId());
-        ArrayList<Integer> subtaskIds = selectedEpic.getSubtaskIds();
-        for (Integer subtaskId : subtaskIds) {
-            subtasksByEpic.add(allSubtask.get(subtaskId));
-        }
-        return subtasksByEpic;
+
+        return epic.getSubtaskIds().stream()
+                .map(subtaskId -> allSubtask.get(subtaskId))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -232,6 +236,35 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             selectedEpic.setStatus(Status.IN_PROGRESS);
         }
+    }
+
+    public void updateTimeAndDurationEpic(Epic epic) {
+        Optional<Epic> selectEpicOptional = Optional.ofNullable(allEpics.get(epic.getId()));
+        if (!selectEpicOptional.isPresent()) throw new NotFoundException("Not found epic by id");
+
+        Epic selectEpic = selectEpicOptional.get();
+        LocalDateTime startTimeEpic;
+        LocalDateTime endTimeEpic;
+        Duration duration = Duration.ZERO;
+
+        List<Subtask> subtasks = selectEpic.getSubtaskIds().stream()
+                .map(subtaskId -> allSubtask.get(subtaskId))
+                .filter(subtask -> subtask.getStartTime() != null && subtask.getDuration() != null)
+                .sorted(Comparator.comparing(subtask -> subtask.getStartTime().getNano()))
+                .toList();
+
+        if (subtasks.isEmpty()) {
+            selectEpic.setStartTime(null);
+            selectEpic.setEndTime(null);
+            selectEpic.setDuration(null);
+            return;
+        }
+        startTimeEpic = subtasks.getFirst().getStartTime();
+        endTimeEpic = subtasks.getLast().getStartTime().plus(subtasks.getLast().getDuration());
+        selectEpic.setStartTime(startTimeEpic);
+        for (Subtask subtask : subtasks) duration = duration.plus(subtask.getDuration());
+        selectEpic.setEndTime(endTimeEpic);
+        selectEpic.setDuration(duration);
     }
 
     @Override
