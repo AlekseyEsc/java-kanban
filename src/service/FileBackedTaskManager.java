@@ -75,6 +75,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 tempEpic.addSubtaskId(subtask.getId());
             }
         }
+        if (!fileBackedTaskManager.allEpics.isEmpty()) {
+            for (Epic epic : fileBackedTaskManager.allEpics.values()) {
+                fileBackedTaskManager.updateTimeAndDurationEpic(epic);
+            }
+        }
 
         return fileBackedTaskManager;
     }
