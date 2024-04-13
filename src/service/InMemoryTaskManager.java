@@ -30,17 +30,17 @@ public class InMemoryTaskManager implements TaskManager {
         LocalDateTime taskEndTime = task.getStartTime().plus(task.getDuration());
 
         TreeMap<LocalDateTime, Task> priorityTasks = getPriorityTask();
-        if (priorityTasks.isEmpty()) return false;
+        if (priorityTasks.isEmpty()) return true;
 
         for (Task priorityTask : priorityTasks.values()) {
-            if (task.equals(priorityTask)) return false;
-            if (task.getStartTime().equals(priorityTask.getStartTime())) return true;
+            if (task.equals(priorityTask)) return true;
+            if (task.getStartTime().equals(priorityTask.getStartTime())) return false;
             LocalDateTime tempStartTime = priorityTask.getStartTime();
             LocalDateTime tempEndTime = priorityTask.getStartTime().plus(priorityTask.getDuration());
-            if (taskStartTime.isAfter(tempStartTime) && taskStartTime.isBefore(tempEndTime)) return true;
-            if (taskStartTime.isBefore(tempStartTime) && taskEndTime.isAfter(tempStartTime)) return true;
+            if (taskStartTime.isAfter(tempStartTime) && taskStartTime.isBefore(tempEndTime)) return false;
+            if (taskStartTime.isBefore(tempStartTime) && taskEndTime.isAfter(tempStartTime)) return false;
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -81,24 +81,34 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeAllSubtask() {
+        List<Subtask> toRemove = new ArrayList<>();
         for (Map.Entry<Integer, Subtask> entry : allSubtask.entrySet()) {
             historyManager.remove(entry.getKey());
+            toRemove.add(entry.getValue());
         }
-        allSubtask.clear();
+
+        for (Subtask subtask : toRemove) {
+            removeSubtask(subtask.getId());
+        }
     }
 
     @Override
     public void removeAllEpics() {
+        List<Epic> toRemove = new ArrayList<>();
         for (Map.Entry<Integer, Epic> entry : allEpics.entrySet()) {
             historyManager.remove(entry.getKey());
+            toRemove.add(entry.getValue());
         }
-        allEpics.clear();
         removeAllSubtask();
+
+        for (Epic epic : toRemove) {
+            removeEpic(epic.getId());
+        }
     }
 
     @Override
     public Task getTask(int id) {
-        if (allTask.get(id) == null) return null;
+        if (allTask.get(id) == null) throw new NotFoundException("task not found");
 
         Task selectTask = allTask.get(id);
         Task returnTask = new Task(selectTask.getName(), selectTask.getDescription(),
@@ -111,7 +121,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask getSubtask(int id) {
-        if (allSubtask.get(id) == null) return null;
+        if (allSubtask.get(id) == null) throw new NotFoundException("subtask not found");
 
         Subtask selectSubtask = allSubtask.get(id);
         Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(),
@@ -124,7 +134,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic getEpic(int id) {
-        if (allEpics.get(id) == null) return null;
+        if (allEpics.get(id) == null) throw new NotFoundException("epic not found");
 
         Epic selectEpic = allEpics.get(id);
         Epic returnEpic = new Epic(selectEpic.getName(), selectEpic.getDescription(),
@@ -157,7 +167,7 @@ public class InMemoryTaskManager implements TaskManager {
         allTask.put(id, task);
 
         if (task.getStartTime() != null) {
-            if (!isCrossing(task)) {
+            if (isCrossing(task)) {
                 priorityTasks.put(task.getStartTime(), task);
             } else throw new CrossingTaskException(String.format("Task %s is crossing", task.getId()));
 
@@ -177,7 +187,7 @@ public class InMemoryTaskManager implements TaskManager {
         updateEpicStatus(tempEpic);
 
         if (subtask.getStartTime() != null) {
-            if (!isCrossing(subtask)) {
+            if (isCrossing(subtask)) {
                 priorityTasks.put(subtask.getStartTime(), subtask);
                 updateTimeAndDurationEpic(tempEpic);
             } else throw new CrossingTaskException(String.format("Subtask %s is crossing", subtask.getId()));
@@ -195,19 +205,21 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (allTask.get(task.getId()) == null) return;
+        if (allTask.get(task.getId()) == null) throw new NullTaskException("update, task null");
         allTask.put(task.getId(), task);
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (allSubtask.get(subtask.getId()) == null) return;
+        if (allSubtask.get(subtask.getId()) == null) throw new NullTaskException("update, subtask null");
         allSubtask.put(subtask.getId(), subtask);
+        Epic tempEpic = getEpic(subtask.getEpicId());
+        updateEpicStatus(tempEpic);
     }
 
     @Override
     public void updateEpic(Epic epic) {
-        if (allEpics.get(epic.getId()) == null) return;
+        if (allEpics.get(epic.getId()) == null) throw new NullTaskException("update, epic null");
         allEpics.put(epic.getId(), epic);
         updateEpicStatus(epic);
     }
