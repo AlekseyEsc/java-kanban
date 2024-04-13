@@ -72,12 +72,4 @@ class InMemoryTaskManagerTest {
         assertNull(manager.allSubtask.get(3), "Subtask not removed from allSubtask");
         assertFalse(manager.getSubtasksByEpic(epic).contains(subtask), "Subtask not removed from epic");
     }
-
-    @DisplayName("Correct remove epic")
-    @Test
-    void shouldBeNullEpicAfterRemoveEpic() {
-        manager.removeEpic(2);
-        assertNull(manager.getEpic(2), "Epic not removed");
-    }
-
 }

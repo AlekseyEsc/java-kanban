@@ -32,9 +32,5 @@ class ManagersTest {
                 "Managers not return InMemoryTaskManager from getDefault");
         Assertions.assertEquals(testTaskManager.allEpics, taskManager.allEpics,
                 "Managers not return InMemoryTaskManager from getDefault");
-
-
     }
-
-
 }
