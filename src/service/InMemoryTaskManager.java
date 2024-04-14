@@ -21,7 +21,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public TreeMap<LocalDateTime, Task> getPriorityTask() {
-        return priorityTasks;
+        return new TreeMap<>(priorityTasks);
     }
 
     private boolean isCrossing(Task task) {
