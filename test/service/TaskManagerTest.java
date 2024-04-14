@@ -67,7 +67,7 @@ class TaskManagerTest {
         assertEquals(taskManager.getEpic(subtask.getEpicId()), epic, "epic subtask not equals");
     }
 
-    @DisplayName("UpdateSubtask")
+    @DisplayName("UpdateTask")
     @Test
     public void shouldUpdateTask() {
         Task testTask1 = new Task("task", "test", LocalDateTime.now(), Duration.ofMinutes(10));
@@ -84,6 +84,31 @@ class TaskManagerTest {
                 "NullTaskException task");
         assertThrows(NotFoundException.class, () -> taskManager.getTask(testTask1.getId()),
                 "NotFoundTaskException task");
+    }
+
+    @DisplayName("Get and update subtask")
+    @Test
+    public void shouldGetAndUpdateSubtask(){
+        Epic epic = new Epic("epic", "test");
+        Subtask subtask = new Subtask("subtask", "test", 1);
+        taskManager.createEpic(epic);
+        taskManager.createSubtask(subtask);
+        assertEquals(subtask, taskManager.getSubtask(2), "Get subtask");
+        subtask.setStatus(Status.DONE);
+        taskManager.updateSubtask(subtask);
+        assertEquals(subtask, taskManager.getSubtask(2), "Update subtask");
+    }
+
+    @DisplayName("Get and update epic")
+    @Test
+    public void shouldGetAndUpdateEpic() {
+        Epic epic = new Epic("epic", "test");
+        taskManager.createEpic(epic);
+        assertEquals(epic, taskManager.getEpic(1), "Get epic");
+
+        epic.setStatus(Status.DONE);
+        taskManager.updateEpic(epic);
+        assertEquals(epic, taskManager.getEpic(1), "Update epic");
     }
 
     @DisplayName("Exception get not exist epic")
