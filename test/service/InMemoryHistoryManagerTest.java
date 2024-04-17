@@ -55,7 +55,6 @@ class InMemoryHistoryManagerTest {
         hist.add(task2);
         hist.add(task1);
         assertEquals(hist, histFromManager);
-
     }
 
 

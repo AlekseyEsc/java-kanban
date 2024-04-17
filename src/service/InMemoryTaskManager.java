@@ -1,14 +1,16 @@
 package service;
 
+import exceptions.*;
 import model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     protected int taskCounts = 1;
+    TreeMap<LocalDateTime, Task> priorityTasks = new TreeMap<>(Comparator.comparing(LocalDateTime::getNano));
     Map<Integer, Task> allTask = new HashMap<>();
     Map<Integer, Subtask> allSubtask = new HashMap<>();
     Map<Integer, Epic> allEpics = new HashMap<>();
@@ -16,6 +18,29 @@ public class InMemoryTaskManager implements TaskManager {
 
     public InMemoryTaskManager(HistoryManager historyManager) {
         this.historyManager = historyManager;
+    }
+
+    public TreeMap<LocalDateTime, Task> getPriorityTask() {
+        return new TreeMap<>(priorityTasks);
+    }
+
+    private boolean isCrossing(Task task) {
+        if (task == null) throw new NullTaskException("Task null when check crossing");
+        LocalDateTime taskStartTime = task.getStartTime();
+        LocalDateTime taskEndTime = task.getStartTime().plus(task.getDuration());
+
+        TreeMap<LocalDateTime, Task> priorityTasks = getPriorityTask();
+        if (priorityTasks.isEmpty()) return true;
+
+        for (Task priorityTask : priorityTasks.values()) {
+            if (task.equals(priorityTask)) return true;
+            if (task.getStartTime().equals(priorityTask.getStartTime())) return false;
+            LocalDateTime tempStartTime = priorityTask.getStartTime();
+            LocalDateTime tempEndTime = priorityTask.getStartTime().plus(priorityTask.getDuration());
+            if (taskStartTime.isAfter(tempStartTime) && taskStartTime.isBefore(tempEndTime)) return false;
+            if (taskStartTime.isBefore(tempStartTime) && taskEndTime.isAfter(tempStartTime)) return false;
+        }
+        return true;
     }
 
     @Override
@@ -56,27 +81,38 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeAllSubtask() {
+        List<Subtask> toRemove = new ArrayList<>();
         for (Map.Entry<Integer, Subtask> entry : allSubtask.entrySet()) {
             historyManager.remove(entry.getKey());
+            toRemove.add(entry.getValue());
         }
-        allSubtask.clear();
+
+        for (Subtask subtask : toRemove) {
+            removeSubtask(subtask.getId());
+        }
     }
 
     @Override
     public void removeAllEpics() {
+        List<Epic> toRemove = new ArrayList<>();
         for (Map.Entry<Integer, Epic> entry : allEpics.entrySet()) {
             historyManager.remove(entry.getKey());
+            toRemove.add(entry.getValue());
         }
-        allEpics.clear();
         removeAllSubtask();
+
+        for (Epic epic : toRemove) {
+            removeEpic(epic.getId());
+        }
     }
 
     @Override
     public Task getTask(int id) {
-        if (allTask.get(id) == null) return null;
+        if (allTask.get(id) == null) throw new NotFoundException("task not found");
 
         Task selectTask = allTask.get(id);
-        Task returnTask = new Task(selectTask.getName(), selectTask.getDescription());
+        Task returnTask = new Task(selectTask.getName(), selectTask.getDescription(),
+                selectTask.getStartTime(), selectTask.getDuration());
         returnTask.setId(selectTask.getId());
         returnTask.setStatus(selectTask.getStatus());
         historyManager.add(returnTask);
@@ -85,10 +121,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask getSubtask(int id) {
-        if (allSubtask.get(id) == null) return null;
+        if (allSubtask.get(id) == null) throw new NotFoundException("subtask not found");
 
         Subtask selectSubtask = allSubtask.get(id);
-        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(), selectSubtask.getEpicId());
+        Subtask returnSubtask = new Subtask(selectSubtask.getName(), selectSubtask.getDescription(),
+                selectSubtask.getEpicId(), selectSubtask.getStartTime(), selectSubtask.getDuration());
         returnSubtask.setId(selectSubtask.getId());
         returnSubtask.setStatus(selectSubtask.getStatus());
         historyManager.add(returnSubtask);
@@ -97,10 +134,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic getEpic(int id) {
-        if (allEpics.get(id) == null) return null;
+        if (allEpics.get(id) == null) throw new NotFoundException("epic not found");
 
         Epic selectEpic = allEpics.get(id);
-        Epic returnEpic = new Epic(selectEpic.getName(), selectEpic.getDescription());
+        Epic returnEpic = new Epic(selectEpic.getName(), selectEpic.getDescription(),
+                selectEpic.getStartTime(), selectEpic.getDuration());
         returnEpic.setId(selectEpic.getId());
         returnEpic.setStatus(selectEpic.getStatus());
         if (selectEpic.getSubtaskIds().isEmpty()) {
@@ -122,25 +160,44 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createTask(Task task) {
+        if (task == null) throw new NullTaskException("Null task when created task");
+
         int id = generateId();
         task.setId(id);
         allTask.put(id, task);
+
+        if (task.getStartTime() != null) {
+            if (isCrossing(task)) {
+                priorityTasks.put(task.getStartTime(), task);
+            } else throw new CrossingTaskException(String.format("Task %s is crossing", task.getId()));
+
+        }
     }
 
     @Override
     public void createSubtask(Subtask subtask) {
         Epic tempEpic = allEpics.get(subtask.getEpicId());
-        if (tempEpic == null) return;
+
+        if (tempEpic == null) throw new NullTaskException("Null temp epic when create subtask");
 
         int id = generateId();
         subtask.setId(id);
-        tempEpic.addSubtaskId(id);
         allSubtask.put(id, subtask);
+        tempEpic.addSubtaskId(id);
         updateEpicStatus(tempEpic);
+
+        if (subtask.getStartTime() != null) {
+            if (isCrossing(subtask)) {
+                priorityTasks.put(subtask.getStartTime(), subtask);
+                updateTimeAndDurationEpic(tempEpic);
+            } else throw new CrossingTaskException(String.format("Subtask %s is crossing", subtask.getId()));
+
+        }
     }
 
     @Override
     public void createEpic(Epic epic) {
+        if (epic == null) throw new NullTaskException("Null epic when create epic");
         int id = generateId();
         epic.setId(id);
         allEpics.put(id, epic);
@@ -148,19 +205,21 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (allTask.get(task.getId()) == null) return;
+        if (allTask.get(task.getId()) == null) throw new NullTaskException("update, task null");
         allTask.put(task.getId(), task);
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (allSubtask.get(subtask.getId()) == null) return;
+        if (allSubtask.get(subtask.getId()) == null) throw new NullTaskException("update, subtask null");
         allSubtask.put(subtask.getId(), subtask);
+        Epic tempEpic = getEpic(subtask.getEpicId());
+        updateEpicStatus(tempEpic);
     }
 
     @Override
     public void updateEpic(Epic epic) {
-        if (allEpics.get(epic.getId()) == null) return;
+        if (allEpics.get(epic.getId()) == null) throw new NullTaskException("update, epic null");
         allEpics.put(epic.getId(), epic);
         updateEpicStatus(epic);
     }
@@ -199,13 +258,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getSubtasksByEpic(Epic epic) {
-        ArrayList<Subtask> subtasksByEpic = new ArrayList<>();
-        Epic selectedEpic = allEpics.get(epic.getId());
-        ArrayList<Integer> subtaskIds = selectedEpic.getSubtaskIds();
-        for (Integer subtaskId : subtaskIds) {
-            subtasksByEpic.add(allSubtask.get(subtaskId));
-        }
-        return subtasksByEpic;
+
+        return epic.getSubtaskIds().stream()
+                .map(subtaskId -> allSubtask.get(subtaskId))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -232,6 +288,35 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             selectedEpic.setStatus(Status.IN_PROGRESS);
         }
+    }
+
+    public void updateTimeAndDurationEpic(Epic epic) {
+        Optional<Epic> selectEpicOptional = Optional.ofNullable(allEpics.get(epic.getId()));
+        if (!selectEpicOptional.isPresent()) throw new NotFoundException("Not found epic by id");
+
+        Epic selectEpic = selectEpicOptional.get();
+        LocalDateTime startTimeEpic;
+        LocalDateTime endTimeEpic;
+        Duration duration = Duration.ZERO;
+
+        List<Subtask> subtasks = selectEpic.getSubtaskIds().stream()
+                .map(subtaskId -> allSubtask.get(subtaskId))
+                .filter(subtask -> subtask.getStartTime() != null && subtask.getDuration() != null)
+                .sorted(Comparator.comparing(subtask -> subtask.getStartTime().getNano()))
+                .toList();
+
+        if (subtasks.isEmpty()) {
+            selectEpic.setStartTime(null);
+            selectEpic.setEndTime(null);
+            selectEpic.setDuration(null);
+            return;
+        }
+        startTimeEpic = subtasks.getLast().getStartTime();
+        endTimeEpic = subtasks.getFirst().getStartTime().plus(subtasks.getLast().getDuration());
+        selectEpic.setStartTime(startTimeEpic);
+        for (Subtask subtask : subtasks) duration = duration.plus(subtask.getDuration());
+        selectEpic.setEndTime(endTimeEpic);
+        selectEpic.setDuration(duration);
     }
 
     @Override

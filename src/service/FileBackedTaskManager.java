@@ -1,14 +1,16 @@
 package service;
 
-import exceptions.ManagerNotFileFound;
-import exceptions.ManagerSaveException;
-import exceptions.ManagerTypeTaskException;
+import exceptions.*;
 import model.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,15 +30,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         ) {
             while (readerTask.ready()) {
-
                 String line = readerTask.readLine();
                 if (line.equals("history:")) break;
-
-                if (line.equals("id,type,name,status,description,epic")) continue;
-
+                if (line.equals("id,type,name,status,description,start time,duration,epic")) continue;
 
                 Task tempTaskFromFile = fromString(line);
-
 
                 switch (tempTaskFromFile.getType()) {
                     case TaskType.TASK:
@@ -64,7 +62,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 fileBackedTaskManager.historyManager.add(historyTask);
             }
 
-
         } catch (FileNotFoundException e) {
             throw new ManagerNotFileFound("File not found in FileBackedTaskManager");
         } catch (IOException e) {
@@ -78,6 +75,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 tempEpic.addSubtaskId(subtask.getId());
             }
         }
+        if (!fileBackedTaskManager.allEpics.isEmpty()) {
+            for (Epic epic : fileBackedTaskManager.allEpics.values()) {
+                fileBackedTaskManager.updateTimeAndDurationEpic(epic);
+            }
+        }
 
         return fileBackedTaskManager;
     }
@@ -86,7 +88,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (
                 BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileInfoInManager.toURI()), StandardCharsets.UTF_8)
         ) {
-            writer.write("id,type,name,status,description,epic\n");
+            writer.write("id,type,name,status,description,start time,duration,epic\n");
             for (Epic epicToSave : allEpics.values()) {
                 writer.write(epicToSave.toString() + "\n");
             }
@@ -104,23 +106,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private static Task fromString(String value) {
+        LocalDateTime startTimeFromString = null;
+        Duration duration = null;
 
         String[] infoForTask = value.split(",");
         String type = infoForTask[1];
+        if (!infoForTask[5].equals("null") && !infoForTask[6].equals("null")) {
+            startTimeFromString = LocalDateTime.parse(infoForTask[5], DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            duration = Duration.of(Long.parseLong(infoForTask[6]), ChronoUnit.MINUTES);
+        }
 
         switch (TaskType.valueOf(type)) {
             case TaskType.TASK:
-                Task taskFromString = new Task(infoForTask[2], infoForTask[4]);
+                Task taskFromString = new Task(infoForTask[2], infoForTask[4], startTimeFromString, duration);
                 taskFromString.setId(Integer.parseInt(infoForTask[0]));
                 taskFromString.setStatus(Status.valueOf(infoForTask[3]));
                 return taskFromString;
             case TaskType.EPIC:
-                Epic epicFromString = new Epic(infoForTask[2], infoForTask[4]);
+                Epic epicFromString = new Epic(infoForTask[2], infoForTask[4], startTimeFromString, duration);
                 epicFromString.setId(Integer.parseInt(infoForTask[0]));
                 epicFromString.setStatus(Status.valueOf(infoForTask[3]));
                 return epicFromString;
             case TaskType.SUBTASK:
-                Subtask subtaskFromString = new Subtask(infoForTask[2], infoForTask[4], Integer.parseInt(infoForTask[5]));
+                Subtask subtaskFromString = new Subtask(infoForTask[2], infoForTask[4],
+                        Integer.parseInt(infoForTask[7]), startTimeFromString, duration);
                 subtaskFromString.setId(Integer.parseInt(infoForTask[0]));
                 subtaskFromString.setStatus(Status.valueOf(infoForTask[3]));
                 return subtaskFromString;
