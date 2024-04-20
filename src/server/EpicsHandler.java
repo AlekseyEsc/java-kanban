@@ -50,8 +50,8 @@ class EpicsHandler implements HttpHandler {
                 handlerPostEpics(exchange, path);
                 break;
             case "DELETE":
-                handlerDeleteEpics(exchange);
-
+                handlerDeleteEpics(exchange, path);
+                break;
         }
     }
 
@@ -132,26 +132,12 @@ class EpicsHandler implements HttpHandler {
         }
     }
 
-    private void handlerDeleteEpics(HttpExchange exchange) {
-        Epic epic;
-
-        try (InputStream inputStream = exchange.getRequestBody()) {
-            String jsonEpic = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            epic = gson.fromJson(jsonEpic, Epic.class);
-
-        } catch (IOException e) {
-            writeResponse("Incorrect request", exchange, 400);
-            return;
-        } catch (NullTaskException e) {
-            writeResponse("Internal Server Error", exchange, 500);
-            return;
-        }
-
+    private void handlerDeleteEpics(HttpExchange exchange, String[] path) {
         try {
-            manager.removeEpic(epic.getId());
+            manager.removeEpic(Integer.parseInt(path[2]));
+            writeResponse("Delete epic success", exchange, 200);
         } catch (NotFoundException ignored) {
         }
-        writeResponse("Delete epic success", exchange, 201);
     }
 
     private void writeResponse(String body, HttpExchange exchange, int code) {

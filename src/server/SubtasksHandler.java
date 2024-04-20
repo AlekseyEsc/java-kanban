@@ -49,7 +49,7 @@ class SubtasksHandler implements HttpHandler {
                 handlerPostSubtasks(exchange, path);
                 break;
             case "DELETE":
-                handlerDeleteSubtasks(exchange);
+                handlerDeleteSubtasks(exchange, path);
 
         }
     }
@@ -117,26 +117,12 @@ class SubtasksHandler implements HttpHandler {
         }
     }
 
-    private void handlerDeleteSubtasks(HttpExchange exchange) {
-        Subtask subtask;
-
-        try (InputStream inputStream = exchange.getRequestBody()) {
-            String jsonSubtask = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            subtask = gson.fromJson(jsonSubtask, Subtask.class);
-
-        } catch (IOException e) {
-            writeResponse("Incorrect request", exchange, 400);
-            return;
-        } catch (NullTaskException e) {
-            writeResponse("Internal Server Error", exchange, 500);
-            return;
-        }
-
+    private void handlerDeleteSubtasks(HttpExchange exchange, String[] path) {
         try {
-            manager.removeSubtask(subtask.getId());
+            manager.removeSubtask(Integer.parseInt(path[2]));
+            writeResponse("Delete subtask success", exchange, 200);
         } catch (NotFoundException ignored) {
         }
-        writeResponse("Delete task success", exchange, 201);
     }
 
     private void writeResponse(String body, HttpExchange exchange, int code) {

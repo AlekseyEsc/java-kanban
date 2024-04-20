@@ -48,7 +48,7 @@ class TasksHandler implements HttpHandler {
                 handlerPostTasks(exchange, path);
                 break;
             case "DELETE":
-                handlerDeleteTasks(exchange);
+                handlerDeleteTasks(exchange, path);
 
         }
     }
@@ -116,26 +116,13 @@ class TasksHandler implements HttpHandler {
         }
     }
 
-    private void handlerDeleteTasks(HttpExchange exchange) {
-        Task task;
-
-        try (InputStream inputStream = exchange.getRequestBody()) {
-            String jsonTask = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            task = gson.fromJson(jsonTask, Task.class);
-
-        } catch (IOException e) {
-            writeResponse("Incorrect request", exchange, 400);
-            return;
-        } catch (NullTaskException e) {
-            writeResponse("Internal Server Error", exchange, 500);
-            return;
-        }
+    private void handlerDeleteTasks(HttpExchange exchange, String[] path) {
 
         try {
-            manager.removeTask(task.getId());
+            manager.removeTask(Integer.parseInt(path[2]));
         } catch (NotFoundException ignored) {
         }
-        writeResponse("Delete task success", exchange, 201);
+        writeResponse("Delete task success", exchange, 200);
     }
 
     private void writeResponse(String body, HttpExchange exchange, int code) {
