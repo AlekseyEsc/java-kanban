@@ -48,7 +48,7 @@ class PrioritizedHandler implements HttpHandler {
     }
 
     private void handlerGetPrioritized(HttpExchange exchange) {
-        List<Task> prioritizedTasks = manager.getPriorityTask().values().stream().toList();
+        List<Task> prioritizedTasks = (List<Task>) manager.getPriorityTask().values();
         String jsonPrioritizedTasks = gson.toJson(prioritizedTasks);
         writeResponse(jsonPrioritizedTasks, exchange, 200);
     }
