@@ -15,7 +15,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.InMemoryTaskManager;
-import service.Managers;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,7 +41,7 @@ class HttpTaskServerTest {
 
     @BeforeEach
     public void init() throws IOException {
-        HttpTaskServer serverTask = new HttpTaskServer(Managers.getDefault());
+        HttpTaskServer serverTask = new HttpTaskServer();
         serverTask.start();
         server = serverTask.getServer();
         manager = serverTask.getManager();
@@ -305,6 +304,7 @@ class HttpTaskServerTest {
         } catch (IOException | InterruptedException ignored) {
         }
     }
+
     static class ListTasksTypeToken extends TypeToken<List<Task>> {
 
     }
@@ -326,7 +326,7 @@ class HttpTaskServerTest {
                 .GET()
                 .build();
 
-        URI epicSubtasks = URI.create("http://localhost:8080/epic/3/subtasks");
+        URI epicSubtasks = URI.create("http://localhost:8080/epics/3/subtasks");
         HttpRequest requestGetEpicSubtasks = HttpRequest.newBuilder()
                 .uri(epicSubtasks)
                 .GET()
@@ -338,11 +338,11 @@ class HttpTaskServerTest {
 
             Subtask subtask = gson.fromJson(responseGetSubtask.body(), Subtask.class);
             List<Subtask> subtasksList = gson.fromJson(responseGetSubtasks.body(), new ListSubtasksTypeToken().getType());
-            List<Subtask> epicSubtasksList = gson.fromJson(responseGetSubtasks.body(), new ListSubtasksTypeToken().getType());
+            List<Subtask> epicSubtasksList = gson.fromJson(responseGetEpicSubtasks.body(), new ListSubtasksTypeToken().getType());
 
             assertEquals(200, responseGetSubtask.statusCode(), "Get subtask status code");
             assertEquals(200, responseGetSubtasks.statusCode(), "Get subtasks status code");
-            assertEquals(200, responseGetSubtasks.statusCode(), "Get epic subtasks status code");
+            assertEquals(200, responseGetEpicSubtasks.statusCode(), "Get epic subtasks status code");
 
             assertEquals(subtask, manager.getSubtask(4), "Get subtask");
             assertEquals(subtasksList, manager.getAllSubtasks(), "Get all subtasks");
@@ -350,6 +350,7 @@ class HttpTaskServerTest {
         } catch (IOException | InterruptedException ignored) {
         }
     }
+
     static class ListSubtasksTypeToken extends TypeToken<List<Subtask>> {
 
     }
@@ -384,6 +385,7 @@ class HttpTaskServerTest {
         } catch (IOException | InterruptedException ignored) {
         }
     }
+
     static class ListEpicsTypeToken extends TypeToken<List<Epic>> {
 
     }

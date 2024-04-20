@@ -13,12 +13,12 @@ public class HttpTaskServer {
     final static int port = 8080;
     private HttpServer server;
 
-    public HttpTaskServer(InMemoryTaskManager manager) {
+    public HttpTaskServer() {
         this.manager = Managers.getDefault();
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
     }
 
