@@ -9,8 +9,8 @@ import java.net.InetSocketAddress;
 
 public class HttpTaskServer {
 
-    final InMemoryTaskManager manager;
-    final static int port = 8080;
+    private final InMemoryTaskManager manager;
+    private final int port = 8080;
     private HttpServer server;
 
     public HttpTaskServer() {
@@ -18,8 +18,9 @@ public class HttpTaskServer {
     }
 
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws IOException {
+        HttpTaskServer httpTaskServer = new HttpTaskServer();
+        httpTaskServer.start();
     }
 
     public void start() throws IOException {
