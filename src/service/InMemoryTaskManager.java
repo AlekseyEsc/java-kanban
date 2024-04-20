@@ -226,8 +226,15 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTask(int id) {
-        allTask.remove(id);
-        historyManager.remove(id);
+        if (allTask.containsKey(id)) {
+            allTask.remove(id);
+        } else {
+            throw new NotFoundException("Task not found");
+        }
+
+        if (historyManager.getHistory().contains(allTask.get(id))) {
+            historyManager.remove(id);
+        }
     }
 
     @Override
