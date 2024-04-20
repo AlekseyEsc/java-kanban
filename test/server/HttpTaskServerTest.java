@@ -388,5 +388,36 @@ class HttpTaskServerTest {
 
     }
 
+    @DisplayName("Get history and prioritized list")
+    @Test
+    public void shouldBeGetHistory() {
+        addTasks();
+
+        URI uriHistory = URI.create("http://localhost:8080/history");
+        HttpRequest requestGetHistory = HttpRequest.newBuilder()
+                .uri(uriHistory)
+                .GET()
+                .build();
+
+        URI uriPrioritized = URI.create("http://localhost:8080/prioritized");
+        HttpRequest requestGetPrioritized = HttpRequest.newBuilder()
+                .uri(uriPrioritized)
+                .GET()
+                .build();
+        try {
+            HttpResponse<String> responseGetHistory = client.send(requestGetHistory, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> responseGetPrioritized = client.send(requestGetPrioritized, HttpResponse.BodyHandlers.ofString());
+
+            List<Task> history = gson.fromJson(responseGetHistory.body(), new ListTasksTypeToken().getType());
+            List<Task> prioritized = gson.fromJson(responseGetPrioritized.body(), new ListTasksTypeToken().getType());
+
+            assertEquals(200, responseGetHistory.statusCode(), "Get history status code");
+            assertEquals(200, responseGetPrioritized.statusCode(), "Get prioritized status code");
+            assertEquals(history, manager.historyManager.getHistory(), "Get history");
+            assertEquals(prioritized, manager.getPriorityTask().values(), "Get prioritized");
+        } catch (IOException | InterruptedException ignored) {
+        }
+    }
+
 
 }
